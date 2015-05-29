@@ -2,4 +2,4 @@
 
 require 'cmit'
 
-App.new.run
+App.new.run(ARGV)

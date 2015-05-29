@@ -57,7 +57,7 @@ class App
   # --------------------------------------------------------------------------
   EOS
 
-  def run(argv)
+  def run(argv = nil)
 
     @options = parse_arguments(argv)
     @detail = @options[:detail]
