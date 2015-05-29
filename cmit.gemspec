@@ -1,0 +1,23 @@
+require 'rake'
+
+Gem::Specification.new do |s|
+  s.name        = 'cmit'
+  s.version     = '0.1.0'
+  s.date        = '2015-05-29'
+  s.summary     = "Git commit utility"
+  s.description = <<-EOS
+    More to come
+EOS
+
+  s.authors     = ["Jeff Sember"]
+  s.email       = 'jpsember@gmail.com'
+  s.files = FileList['lib/**/*.rb',
+                      'bin/*',
+                      '[A-Z]*',
+                      ]
+  s.executables << 'cmit'
+  s.add_runtime_dependency 'git_diff', '>= 0.1.0'
+
+  s.homepage = 'http://www.cs.ubc.ca/~jpsember'
+  s.license     = 'MIT'
+end
