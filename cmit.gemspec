@@ -16,7 +16,7 @@ EOS
                       '[A-Z]*',
                       ]
   s.executables << 'cmit'
-  s.add_runtime_dependency 'js_base', '>= 1.0.2'
+  s.add_runtime_dependency 'js_base', '>= 1.0.1'
 
   s.homepage = 'http://www.cs.ubc.ca/~jpsember'
   s.license     = 'MIT'
