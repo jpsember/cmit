@@ -14,7 +14,13 @@ end
 
 class App
 
-  COMMIT_CACHE_DIR = ".commit_cache"
+  # Determine the git repository root directory, and from it,
+  # the commit cache directory
+  #
+  root_dir,_ = scall("git rev-parse --show-toplevel")
+  root_dir.chomp!
+  COMMIT_CACHE_DIR = File.join(root_dir, ".commit_cache")
+
   #
   # The git state representing the last successfully tested project is written here
   #
