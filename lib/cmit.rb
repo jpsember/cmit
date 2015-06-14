@@ -74,7 +74,9 @@ class App
     begin
       prepare_cache_dir(@options[:clean])
 
-      if @options[:testonly] || !commit_is_necessary
+      if @options[:message_only]
+        edit_commit_message(true)
+      elsif @options[:testonly] || !commit_is_necessary
         run_unit_tests
       elsif @options[:omit_tests]
         perform_commit_if_nec
@@ -156,12 +158,16 @@ class App
     FileUtils.read_text_file(PREVIOUS_COMMIT_MESSAGE_FILENAME,"")
   end
 
-  def edit_commit_message
+  def edit_commit_message(edit_message_only = false)
     if !File.exist?(COMMIT_MESSAGE_FILENAME)
       status,_ = scall("git status")
       status = convert_string_to_comments(status)
       prior_msg = previous_commit_message
       content = COMMIT_MESSAGE_TEMPLATE_1
+      if edit_message_only
+        content = "# (Editing message only, not generating a commit)\n" + content
+      end
+
       if prior_msg
         content += COMMIT_MESSAGE_TEMPLATE_2 + convert_string_to_comments(prior_msg)
       end
@@ -177,7 +183,6 @@ class App
   def commit_is_necessary
     !current_git_state().empty?
   end
-
 
   def perform_commit_if_nec
     return if !commit_is_necessary
@@ -219,6 +224,7 @@ class App
       opt :omit_tests,"omit tests"
       opt :omit_java, "omit 'plain old' Java unit tests", :short => 'j'
       opt :testonly,"perform unit tests only, without generating commit"
+      opt :message_only, "edit commit message without generating commit", :short => 'm'
     end
 
     Trollop::with_standard_exception_handling p do
