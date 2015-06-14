@@ -63,6 +63,8 @@ class App
   # --------------------------------------------------------------------------
   EOS
 
+  MESSAGE_ONLY_TEXT = "# (Editing message only, not generating a commit)\n"
+
   def run(argv = nil)
 
     @options = parse_arguments(argv)
@@ -164,9 +166,6 @@ class App
       status = convert_string_to_comments(status)
       prior_msg = previous_commit_message
       content = COMMIT_MESSAGE_TEMPLATE_1
-      if edit_message_only
-        content = "# (Editing message only, not generating a commit)\n" + content
-      end
 
       if prior_msg
         content += COMMIT_MESSAGE_TEMPLATE_2 + convert_string_to_comments(prior_msg)
@@ -175,9 +174,29 @@ class App
       FileUtils.write_text_file(COMMIT_MESSAGE_FILENAME,content)
     end
 
+    # Add or remove 'message only' prefix as appropriate, BEFORE editing the file,
+    # and again afterward 
+    # (so the 'message only' is really only information to the user, and not part of the 
+    # commit message)
+    #
+    insert_message_only(edit_message_only)
     TextEditor.new(COMMIT_MESSAGE_FILENAME).edit
+    if edit_message_only
+      insert_message_only(false)
+    end
 
     message = FileUtils.read_text_file(COMMIT_MESSAGE_FILENAME)
+  end
+
+  def insert_message_only(add_message)
+    content = FileUtils.read_text_file(COMMIT_MESSAGE_FILENAME)
+    if content.start_with?(MESSAGE_ONLY_TEXT)
+      content = content[MESSAGE_ONLY_TEXT.length..-1]
+    end
+    if add_message
+      content = MESSAGE_ONLY_TEXT + content
+    end
+    FileUtils.write_text_file(COMMIT_MESSAGE_FILENAME,content,true)
   end
 
   def commit_is_necessary
@@ -192,7 +211,7 @@ class App
   def perform_commit_with_message(message)
     stripped = nil
     if message
-        stripped = strip_comments_from_string(message)
+      stripped = strip_comments_from_string(message)
     end
 
     raise(ProgramException,"Commit message empty") if !stripped
