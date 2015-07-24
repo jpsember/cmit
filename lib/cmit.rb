@@ -19,7 +19,10 @@ class App
   #
   root_dir,_ = scall("git rev-parse --show-toplevel")
   root_dir.chomp!
-  COMMIT_CACHE_DIR = File.join(root_dir, ".commit_cache")
+  REPO_ROOT_DIR = root_dir
+  puts "root dir=#{REPO_ROOT_DIR}"
+
+  COMMIT_CACHE_DIR = File.join(REPO_ROOT_DIR, ".commit_cache")
 
   #
   # The git state representing the last successfully tested project is written here
@@ -175,8 +178,8 @@ class App
     end
 
     # Add or remove 'message only' prefix as appropriate, BEFORE editing the file,
-    # and again afterward 
-    # (so the 'message only' is really only information to the user, and not part of the 
+    # and again afterward
+    # (so the 'message only' is really only information to the user, and not part of the
     # commit message)
     #
     insert_message_only(edit_message_only)
@@ -209,6 +212,7 @@ class App
   end
 
   def perform_commit_with_message(message)
+    find_merge_conflicts if !@options[:ignore_merge_conflicts]
     stripped = nil
     if message
       stripped = strip_comments_from_string(message)
@@ -232,6 +236,13 @@ class App
     end
   end
 
+  def find_merge_conflicts
+    # Search for merge conflict markers; escape them to avoid shell expansion
+    results1,success = scall('grep -nrI -e "<<<<<<< " -e ">>>>>>> " "' + REPO_ROOT_DIR + '"',false)
+     return if !success
+    die "Unprocessed merge conflict:\n#{results1}"
+  end
+
   def parse_arguments(argv)
     p = Trollop::Parser.new do
       banner <<-EOS
@@ -244,6 +255,7 @@ class App
       opt :omit_java, "omit 'plain old' Java unit tests", :short => 'j'
       opt :testonly,"perform unit tests only, without generating commit"
       opt :message_only, "edit commit message without generating commit", :short => 'm'
+      opt :ignore_merge_conflicts, "ignore any merge conflicts", :short => 'M'
     end
 
     Trollop::with_standard_exception_handling p do
