@@ -2,7 +2,7 @@ require 'rake'
 
 Gem::Specification.new do |s|
   s.name        = 'cmit'
-  s.version     = '0.3.2'
+  s.version     = '0.3.3'
   s.summary     = "Git commit utility"
   s.description = <<-EOS
     Performs a git commit after allowing user to edit commit message, and verifying it contains an issue number

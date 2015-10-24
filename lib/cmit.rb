@@ -43,25 +43,25 @@ class App
   COMMIT_MESSAGE_TEMPLATE_1=<<-EOS.strip_heredoc
   Issue #
 
-  # Enter a commit message above, including at least one issue number prefixed with '#'.
-  # You can have GitHub close the issue automatically by referring to the issue with
-  # one of these (case-insensitive) forms:
-  #
-  #  'fixes #123', 'resolves #123', 'closes #123'.
-  #
+  # Enter commit message; include an issue number prefixed with '#'.
+  #            (close issue via 'fixes #', 'resolves #', 'closes #')
   EOS
 
   COMMIT_MESSAGE_TEMPLATE_2=<<-EOS.strip_heredoc
 
-  # --------------------------------------------------------------------------
   # Previous commit's message:
   # --------------------------------------------------------------------------
   EOS
 
 
+  COMMIT_MESSAGE_TEMPLATE_HISTORY=<<-EOS.strip_heredoc
+
+  # Previous commits:
+  # --------------------------------------------------------------------------
+  EOS
+
   COMMIT_MESSAGE_TEMPLATE_3=<<-EOS.strip_heredoc
 
-  # --------------------------------------------------------------------------
   # Git repository status:
   # --------------------------------------------------------------------------
   EOS
@@ -169,11 +169,18 @@ class App
       status = convert_string_to_comments(status)
       prior_msg = previous_commit_message
       content = COMMIT_MESSAGE_TEMPLATE_1
-
       if prior_msg
-        content += COMMIT_MESSAGE_TEMPLATE_2 + convert_string_to_comments(prior_msg)
+        content << COMMIT_MESSAGE_TEMPLATE_2 << convert_string_to_comments(prior_msg)
       end
-      content += COMMIT_MESSAGE_TEMPLATE_3 + status
+
+      # Get the previous few log history lines, and append to show user
+      # some issue numbers he may want
+      hist,success = scall('git log --pretty=format:%s -4',false)
+      if success
+        content << COMMIT_MESSAGE_TEMPLATE_HISTORY + convert_string_to_comments(hist)
+      end
+
+      content << COMMIT_MESSAGE_TEMPLATE_3 + status
       FileUtils.write_text_file(COMMIT_MESSAGE_FILENAME,content)
     end
 
@@ -220,8 +227,9 @@ class App
 
     raise(ProgramException,"Commit message empty") if !stripped
     if !(stripped =~ /#\d+/)
-      raise(ProgramException,"No issue numbers found in commit message")
+      raise ProgramException,"No issue numbers found in commit message"
     end
+
     FileUtils.write_text_file(COMMIT_MESSAGE_STRIPPED_FILENAME,stripped)
 
     if system("git commit -a --file=#{COMMIT_MESSAGE_STRIPPED_FILENAME}")
@@ -239,7 +247,7 @@ class App
   def find_merge_conflicts
     # Search for merge conflict markers; escape them to avoid shell expansion
     results1,success = scall('grep -nrI -e "<<<<<<< " -e ">>>>>>> " "' + REPO_ROOT_DIR + '"',false)
-     return if !success
+    return if !success
     die "Unprocessed merge conflict:\n#{results1}"
   end
 
