@@ -24,11 +24,6 @@ class App
 
   COMMIT_CACHE_DIR = File.join(REPO_ROOT_DIR, ".commit_cache")
 
-  #
-  # The git state representing the last successfully tested project is written here
-  #
-  GIT_STATE_TESTED_FILENAME = "#{COMMIT_CACHE_DIR}/state.txt"
-
   # The commit message to be used for the next commit, it is edited by the user,
   # stored in this file, and deleted when commit succeeds
   #
@@ -74,28 +69,17 @@ class App
     @detail = @options[:detail]
     @verbose = @options[:verbose] || @detail
     @current_git_state = nil
-    @last_tested_git_state = nil
 
     begin
-      prepare_cache_dir(@options[:clean])
+      prepare_cache_dir()
 
       if @options[:message_only]
         edit_commit_message(true)
-      elsif @options[:testonly] || !commit_is_necessary
-        run_unit_tests
-      elsif @options[:omit_tests]
-        perform_commit_if_nec
       else
-        puts "Starting unit tests in separate thread..." if @verbose
-        thread = Thread.new do
-          run_unit_tests
-        end
         message = nil
         if commit_is_necessary
           message = edit_commit_message
         end
-        puts "Waiting for unit tests to complete..." if @verbose
-        thread.join
         perform_commit_with_message(message) if commit_is_necessary
       end
 
@@ -105,22 +89,10 @@ class App
     end
   end
 
-  def prepare_cache_dir(clean = false)
+  def prepare_cache_dir()
     if !File.directory?(COMMIT_CACHE_DIR)
       Dir.mkdir(COMMIT_CACHE_DIR)
     end
-    if clean
-      remove(GIT_STATE_TESTED_FILENAME)
-      remove(PREVIOUS_COMMIT_MESSAGE_FILENAME)
-    end
-  end
-
-  def last_tested_git_state
-    if @last_tested_git_state.nil?
-      @last_tested_git_state = FileUtils.read_text_file(GIT_STATE_TESTED_FILENAME,"")
-      puts "---- Read old git state from file:\n#{@last_tested_git_state}\n" if @verbose
-    end
-    @last_tested_git_state
   end
 
   # Construct string representing git state; lazy initialized
@@ -236,8 +208,6 @@ class App
       # Dispose of the commit message, since it has made its way into a successful commit
       remove(COMMIT_MESSAGE_FILENAME)
       remove(COMMIT_MESSAGE_STRIPPED_FILENAME)
-      # Throw out previous tested state, since commit has occurred
-      remove(GIT_STATE_TESTED_FILENAME)
       FileUtils.write_text_file(PREVIOUS_COMMIT_MESSAGE_FILENAME,stripped)
     else
       raise(ProgramException,"Git commit failed; error #{$?}")
@@ -246,7 +216,9 @@ class App
 
   def find_merge_conflicts
     # Search for merge conflict markers; escape them to avoid shell expansion
-    results1,success = scall('grep -nrI -e "<<<<<<< " -e ">>>>>>> " "' + REPO_ROOT_DIR + '"',false)
+    # Avoid expressing merge conflict markers within this source file, to prevent
+    # spurious marge conflict detection on this file
+    results1,success = scall("grep -nrI -e #{'<'*6+' '} -e #{'>'*6+' '} \"#{REPO_ROOT_DIR}\"",false)
     return if !success
     die "Unprocessed merge conflict:\n#{results1}"
   end
@@ -256,12 +228,8 @@ class App
       banner <<-EOS
       Runs unit tests, generates commit for this project
       EOS
-      opt :clean, "clean projects before running tests"
       opt :detail, "display lots of detail"
       opt :verbose, "display progress"
-      opt :omit_tests,"omit tests"
-      opt :omit_java, "omit 'plain old' Java unit tests", :short => 'j'
-      opt :testonly,"perform unit tests only, without generating commit"
       opt :message_only, "edit commit message without generating commit", :short => 'm'
       opt :ignore_merge_conflicts, "ignore any merge conflicts", :short => 'M'
     end
@@ -269,32 +237,6 @@ class App
     Trollop::with_standard_exception_handling p do
       p.parse argv
     end
-  end
-
-  # Run the unit tests, if we haven't already successfully run them
-  # for this repository state (and user isn't explicitly omitting them)
-  #
-  def run_unit_tests
-    return if @options[:omit_tests]
-
-    if current_git_state == last_tested_git_state
-      return
-    end
-    if true
-      puts "...unit tests not yet supported, omitting"
-      return
-    end
-
-    puts "...this project state has not been tested, running unit tests" if @verbose
-
-    options = " -t"
-    options = options + " -c" if @options[:clean]
-    options = options + " -j" if @options[:omit_java]
-
-    output,_ = runcmd("runtests.rb#{options}","Running unit tests")
-
-    # Write the current git state to the cache, to indicate we've tested it
-    FileUtils.write_text_file(GIT_STATE_TESTED_FILENAME,@current_git_state)
   end
 
   def runcmd(cmd,message=nil)
