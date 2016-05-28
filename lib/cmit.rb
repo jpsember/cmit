@@ -20,7 +20,6 @@ class App
   root_dir,_ = scall("git rev-parse --show-toplevel")
   root_dir.chomp!
   REPO_ROOT_DIR = root_dir
-  puts "root dir=#{REPO_ROOT_DIR}"
 
   COMMIT_CACHE_DIR = File.join(REPO_ROOT_DIR, ".commit_cache")
 
@@ -218,9 +217,10 @@ class App
     # Search for merge conflict markers; escape them to avoid shell expansion
     # Avoid expressing merge conflict markers within this source file, to prevent
     # spurious marge conflict detection on this file
-    results1,success = scall("grep -nrI -e #{'<'*6+' '} -e #{'>'*6+' '} \"#{REPO_ROOT_DIR}\"",false)
+    cmd = "grep -nrI -e \"#{"<<<"}#{"<<< "}\" -e \"#{">>>"}#{">>> "}\" \"#{REPO_ROOT_DIR}\""
+    results,success = scall(cmd,false)
     return if !success
-    die "Unprocessed merge conflict:\n#{results1}"
+    die "Unprocessed merge conflict:\n#{results}"
   end
 
   def parse_arguments(argv)
