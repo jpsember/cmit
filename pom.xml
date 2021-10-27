@@ -1,0 +1,51 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.jsbase</groupId>
+  <artifactId>cmit</artifactId>
+  <version>1.0</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+
+    <!--  Custom properties start {~properties:  -->
+    <!--  Custom properties end   ~}             -->
+
+  </properties>
+
+  <dependencies>
+
+    <!--  Custom dependencies start {~dependencies: -->
+
+    <dependency>
+      <groupId>com.jsbase</groupId>
+      <artifactId>base</artifactId>
+      <version>1.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.jsbase</groupId>
+      <artifactId>gitutil</artifactId>
+      <version>1.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.jsbase</groupId>
+      <artifactId>testutil</artifactId>
+      <version>1.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!--  Custom dependencies end   ~}              -->
+
+  </dependencies>
+
+  <!--  Custom elements start {~elements:         -->
+  <!--  Custom elements end   ~}                  -->
+
+</project>

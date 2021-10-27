@@ -1,0 +1,19 @@
+.DS_Store
+
+target
+
+# Sublime text editor
+#
+*.sublime-project
+*.sublime-workspace
+
+_OLD_*
+_SKIP_*
+
+# Eclipse IDE
+#
+.classpath
+.project
+.settings
+
+base.sh
