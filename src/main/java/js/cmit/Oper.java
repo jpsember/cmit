@@ -70,12 +70,14 @@ public class Oper extends AppOper {
   private static final String CLARG_MESSAGEONLY = "messageonly";
   private static final String CLARG_IGNORECONFLICT = "ignoreconflict";
   private static final String CLARG_UNTRACKED = "untracked";
+  private static final String CLARG_OMIT_ISSUE_NUMBERS = "nonum";
 
   @Override
   public void addCommandLineArgs(CmdLineArgs ca) {
     ca.add(CLARG_MESSAGEONLY).desc("Edit commit message without generating commit").shortName("m");
     ca.add(CLARG_IGNORECONFLICT).desc("Ignore any merge conflicts").shortName("M");
     ca.add(CLARG_UNTRACKED).desc("Allow untracked files").shortName("u");
+    ca.add(CLARG_OMIT_ISSUE_NUMBERS).desc("Don't require issue numbers").shortName("I");
   }
 
   // The commit message to be used for the next commit, it is edited by the user,
@@ -203,8 +205,10 @@ public class Oper extends AppOper {
     if (nullOrEmpty(stripped))
       setError("Commit message is empty!");
 
-    if (!RegExp.matcher("#\\d+", stripped).find())
-      setError("No issue numbers were found in the commit message");
+    if (!cmdLineArgs().get(CLARG_OMIT_ISSUE_NUMBERS)) {
+      if (!RegExp.matcher("#\\d+", stripped).find())
+        setError("No issue numbers were found in the commit message");
+    }
 
     files().writeString(cacheFile(COMMIT_MESSAGE_STRIPPED_FILENAME), stripped);
 
