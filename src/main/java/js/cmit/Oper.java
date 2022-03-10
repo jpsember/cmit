@@ -93,8 +93,11 @@ public class Oper extends AppOper {
   private static final String MESSAGE_ONLY_TEXT = "# (Editing message only, not generating a commit)\n";
 
   private File cacheDir() {
-    if (mCacheDir == null)
-      mCacheDir = files().mkdirs(gitRepo().absoluteFile("_SKIP_gitdiff_backups/cmit_cache"));
+    if (mCacheDir == null) {
+      // Use the backup directory that is used by the gitdiff program
+      String repoName = gitRepo().rootDirectory().getName();
+      mCacheDir = files().mkdirs(new File(Files.homeDirectory(), ".gitdiff_backups/" + repoName));
+    }
     return mCacheDir;
   }
 
