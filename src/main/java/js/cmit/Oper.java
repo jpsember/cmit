@@ -152,6 +152,7 @@ public class Oper extends AppOper {
       if (t.isEmpty() || t.startsWith("#"))
         prevContent= "";
     }
+
     
     if (prevContent.isEmpty()) {
       String status = new SystemCall().arg("git", "status").systemOut();
