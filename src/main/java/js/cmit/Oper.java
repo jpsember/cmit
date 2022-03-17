@@ -145,8 +145,6 @@ public class Oper extends AppOper {
     File file = cacheFile(COMMIT_MESSAGE_FILENAME);
     String prevContent = Files.readString(file, "").trim();
 
-    pr("prevContent:", INDENT, quote(prevContent));
-
     // If the commit message seems to start with a comment, treat as empty
     //
     {
@@ -159,17 +157,11 @@ public class Oper extends AppOper {
       String status = new SystemCall().arg("git", "status").systemOut();
       status = convertStringToGitComments(status);
       String prior_msg = previousCommitMessage();
-
-      pr("prior:", INDENT, quote(prior_msg));
-
       String content = readResource(
           requireIssueNumber() ? "commit_message_1.txt" : "commit_message_1_issue_nums_opt.txt");
 
-      pr("m1:", INDENT, quote(content));
-
       if (!prior_msg.isEmpty()) {
         content = content + readResource("commit_message_2.txt") + convertStringToGitComments(prior_msg);
-        pr("appended prir:", INDENT, quote(content));
       }
 
       // Get the previous few log history lines, and append to show user
