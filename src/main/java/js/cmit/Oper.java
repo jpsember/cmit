@@ -145,14 +145,31 @@ public class Oper extends AppOper {
     File file = cacheFile(COMMIT_MESSAGE_FILENAME);
     String prevContent = Files.readString(file, "").trim();
 
+    pr("prevContent:", INDENT, quote(prevContent));
+
+    // If the commit message seems to start with a comment, treat as empty
+    //
+    {
+      String t = prevContent.trim();
+      if (t.isEmpty() || t.startsWith("#"))
+        prevContent= "";
+    }
+    
     if (prevContent.isEmpty()) {
       String status = new SystemCall().arg("git", "status").systemOut();
       status = convertStringToGitComments(status);
       String prior_msg = previousCommitMessage();
-      String content = readResource("commit_message_1.txt");
+
+      pr("prior:", INDENT, quote(prior_msg));
+
+      String content = readResource(
+          requireIssueNumber() ? "commit_message_1.txt" : "commit_message_1_issue_nums_opt.txt");
+
+      pr("m1:", INDENT, quote(content));
 
       if (!prior_msg.isEmpty()) {
         content = content + readResource("commit_message_2.txt") + convertStringToGitComments(prior_msg);
+        pr("appended prir:", INDENT, quote(content));
       }
 
       // Get the previous few log history lines, and append to show user
@@ -208,7 +225,7 @@ public class Oper extends AppOper {
     if (nullOrEmpty(stripped))
       setError("Commit message is empty!");
 
-    if (!cmdLineArgs().get(CLARG_OMIT_ISSUE_NUMBERS)) {
+    if (requireIssueNumber()) {
       if (!RegExp.matcher("#\\d+", stripped).find())
         setError("No issue numbers were found in the commit message");
     }
@@ -224,6 +241,10 @@ public class Oper extends AppOper {
     files().deleteFile(cacheFile(COMMIT_MESSAGE_FILENAME));
     files().deleteFile(cacheFile(COMMIT_MESSAGE_STRIPPED_FILENAME));
     files().writeString(cacheFile(PREVIOUS_COMMIT_MESSAGE_FILENAME), stripped);
+  }
+
+  private boolean requireIssueNumber() {
+    return !cmdLineArgs().get(CLARG_OMIT_ISSUE_NUMBERS);
   }
 
   private void findMergeConflicts() {
