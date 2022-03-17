@@ -149,11 +149,10 @@ public class Oper extends AppOper {
     //
     {
       String t = prevContent.trim();
-      if (t.isEmpty() || t.startsWith("#"))
-        prevContent= "";
+      if (t.isEmpty() || t.startsWith("#") || (!requireIssueNumber() && t.startsWith("Issue #\n")))
+        prevContent = "";
     }
 
-    
     if (prevContent.isEmpty()) {
       String status = new SystemCall().arg("git", "status").systemOut();
       status = convertStringToGitComments(status);
