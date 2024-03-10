@@ -20,7 +20,7 @@ import js.system.SystemUtil;
 public class Oper extends AppOper {
 
   @Override
-  protected String getHelpDescription() {
+  protected String shortHelp() {
     return "records a commit message and makes a git commit";
   }
 
