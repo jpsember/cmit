@@ -50,20 +50,20 @@
     <dependency>
       <groupId>com.jsbase</groupId>
       <artifactId>java-core</artifactId>
-      <version>3.0</version>
+      <version>1000</version>
     </dependency>
 
     <dependency>
       <groupId>com.jsbase</groupId>
       <artifactId>java-testutil</artifactId>
-      <version>3.0</version>
+      <version>1000</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>com.jsbase</groupId>
       <artifactId>gitutil</artifactId>
-      <version>3.0</version>
+      <version>1000</version>
     </dependency>
 
     <!-- Required for reading single characters from terminal -->
