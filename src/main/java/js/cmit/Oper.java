@@ -26,7 +26,7 @@ public class Oper extends AppOper {
 
   @Override
   public String userCommand() {
-    return null;
+    return "cmit";
   }
 
   @Override
